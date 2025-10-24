@@ -1,0 +1,104 @@
+name: Code Quality & Linting
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - reopened
+
+permissions:
+    contents: read
+
+jobs:
+    lint-yaml:
+        name: YAML Linting
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Set up yamllint
+              uses: actions/setup-python@v6
+              with:
+                  python-version: '3.11'
+
+            - name: Install yamllint
+              run: pip install yamllint
+
+            - name: Lint YAML files
+              run: |
+                  yamllint -d relaxed .github/workflows/
+                  yamllint -d relaxed docker-compose.yml heroku.yml
+                  echo "✓ YAML files passed linting"
+
+    lint-json:
+        name: JSON Linting
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Set up Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: '3.11'
+
+            - name: Lint JSON files
+              run: |
+                  python3 << 'EOF'
+                  import json
+                  import glob
+                  import sys
+
+                  files = glob.glob('**/*.json', recursive=True)
+                  errors = []
+
+                  for file in files:
+                      if '.git' in file:
+                          continue
+                      try:
+                          with open(file, 'r') as f:
+                              json.load(f)
+                          print(f"✓ {file}")
+                      except Exception as e:
+                          errors.append(f"✗ {file}: {e}")
+
+                  if errors:
+                      for error in errors:
+                          print(error)
+                      sys.exit(1)
+                  print("\n✓ All JSON files are valid")
+                  EOF
+
+    lint-shell:
+        name: Shell Script Linting
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Install ShellCheck
+              run: sudo apt-get install -y shellcheck
+
+            - name: Lint shell scripts
+              run: |
+                  shellcheck start-keycloak.sh
+                  echo "✓ Shell scripts passed linting"
+
+    lint-dockerfile:
+        name: Dockerfile Linting
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Lint Dockerfile
+              uses: hadolint/hadolint-action@v3
+              with:
+                  dockerfile: Dockerfile
+                  ignore: DL3008,DL3009
+                  failure-threshold: warning

@@ -2,9 +2,13 @@ name: CI/CD - Build & Test
 
 on:
   push:
-    branches: [main, copilot/deploy-keycloak-heroku]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: read
@@ -16,17 +20,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: false
           tags: keycloak-heroku:latest
+          build-args: |
+            KEYCLOAK_VERSION=latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -39,4 +45,3 @@ jobs:
         run: |
           python3 -m json.tool app.json > /dev/null
           echo "✓ app.json is valid"
-

@@ -1,248 +1,132 @@
-name: Security & Linting
+name: Security Scanning
 
 on:
-  push:
-    branches: [main, copilot/deploy-keycloak-heroku]
-  pull_request:
-    branches: [main]
-  schedule:
-    # Run security checks daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    push:
+        branches:
+            - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - reopened
+    schedule:
+        # Run security checks weekly on Sunday at 2 AM UTC
+        - cron: '0 2 * * 0'
 
 permissions:
-  contents: read
-  security-events: write
-  issues: write
-  pull-requests: write
+    contents: read
+    security-events: write
+    issues: write
+    pull-requests: write
 
 jobs:
-  lint-yaml:
-    name: YAML Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    secret-scanning:
+        name: Secret Scanning with TruffleHog
+        runs-on: ubuntu-latest
+        if: github.event_name != 'schedule' || github.run_attempt == 1
 
-      - name: Set up yamllint
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
 
-      - name: Install yamllint
-        run: pip install yamllint
+            - name: Run TruffleHog - Git History
+              id: trufflehog_git
+              uses: trufflesecurity/trufflehog@main
+              with:
+                  path: ./
+                  base: ${{ github.event.repository.default_branch }}
+                  head: HEAD
+                  extra_args: --only-verified --json
+              continue-on-error: true
 
-      - name: Lint YAML files
-        run: |
-          yamllint -d relaxed .github/workflows/
-          yamllint -d relaxed docker-compose.yml heroku.yml
-          echo "✓ YAML files passed linting"
+            - name: Run TruffleHog - Filesystem
+              id: trufflehog_fs
+              uses: trufflesecurity/trufflehog@main
+              with:
+                  path: ./
+                  filesystem: true
+                  extra_args: --only-verified --json
+              continue-on-error: true
 
-  lint-json:
-    name: JSON Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+            - name: Comment on PR if secrets found
+              if: failure() && github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: '⚠️ **Security Alert**: TruffleHog detected potential secrets in this PR.\n\nPlease review and remove any exposed credentials before merging.'
+                      })
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    security-scanning:
+        name: Container Security Scanning
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            security-events: write
 
-      - name: Lint JSON files
-        run: |
-          python3 << 'EOF'
-          import json
-          import glob
-          import sys
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
 
-          files = glob.glob('**/*.json', recursive=True)
-          errors = []
+            - name: Run Trivy - Dockerfile Scan
+              uses: aquasecurity/trivy-action@master
+              with:
+                  scan-type: 'config'
+                  scan-ref: '.'
+                  format: 'sarif'
+                  output: 'trivy-dockerfile.sarif'
+              continue-on-error: true
 
-          for file in files:
-              if '.git' in file:
-                  continue
-              try:
-                  with open(file, 'r') as f:
-                      json.load(f)
-                  print(f"✓ {file}")
-              except Exception as e:
-                  errors.append(f"✗ {file}: {e}")
+            - name: Upload Trivy Dockerfile results
+              uses: github/codeql-action/upload-sarif@v2
+              if: always()
+              with:
+                  sarif_file: 'trivy-dockerfile.sarif'
+                  category: 'trivy-dockerfile'
 
-          if errors:
-              for error in errors:
-                  print(error)
-              sys.exit(1)
-          print("\n✓ All JSON files are valid")
-          EOF
+            - name: Run Trivy - Image Scan
+              uses: aquasecurity/trivy-action@master
+              with:
+                  image-ref: 'quay.io/keycloak/keycloak:latest'
+                  format: 'sarif'
+                  output: 'trivy-image.sarif'
+              continue-on-error: true
 
-  lint-shell:
-    name: Shell Script Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+            - name: Upload Trivy Image results
+              uses: github/codeql-action/upload-sarif@v2
+              if: always()
+              with:
+                  sarif_file: 'trivy-image.sarif'
+                  category: 'trivy-image'
 
-      - name: Install ShellCheck
-        run: sudo apt-get install -y shellcheck
+    config-validation:
+        name: Hardcoded Secrets Check
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
 
-      - name: Lint shell scripts
-        run: |
-          shellcheck start-keycloak.sh
-          echo "✓ Shell scripts passed linting"
-
-  lint-dockerfile:
-    name: Dockerfile Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Lint Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: Dockerfile
-          ignore: DL3008,DL3009
-          failure-threshold: warning
-
-  secret-scanning:
-    name: Secret Scanning with TruffleHog
-    runs-on: ubuntu-latest
-    if: github.event_name != 'schedule' || github.run_attempt == 1
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run TruffleHog - Git History
-        id: trufflehog_git
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --only-verified --json
-        continue-on-error: true
-
-      - name: Run TruffleHog - Filesystem
-        id: trufflehog_fs
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          filesystem: true
-          extra_args: --only-verified --json
-        continue-on-error: true
-
-      - name: Comment on PR if secrets found
-        if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '⚠️ **Security Alert**: TruffleHog detected potential secrets in this PR.\n\nPlease review and remove any exposed credentials before merging.'
-            })
-
-  security-scanning:
-    name: Container Security Scanning
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy - Dockerfile Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'config'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-dockerfile.sarif'
-        continue-on-error: true
-
-      - name: Upload Trivy Dockerfile results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-dockerfile.sarif'
-          category: 'trivy-dockerfile'
-
-      - name: Run Trivy - Image Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'quay.io/keycloak/keycloak:latest'
-          format: 'sarif'
-          output: 'trivy-image.sarif'
-        continue-on-error: true
-
-      - name: Upload Trivy Image results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-image.sarif'
-          category: 'trivy-image'
-
-  config-validation:
-    name: Configuration Validation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Validate app.json
-        run: |
-          python3 -m json.tool app.json > /dev/null
-          echo "✓ app.json is valid JSON"
-
-      - name: Check for hardcoded secrets
-        continue-on-error: true
-        run: |
-          if grep -r "password\|secret\|api.key\|token" app.json .env.example 2>/dev/null | grep -v "change_me\|example\|EXAMPLE"; then
-              echo "⚠️ Warning: Possible hardcoded credentials detected. Please review."
-              exit 1
-          else
-              echo "✓ No obvious hardcoded credentials found"
-          fi
-
-  build-test:
-    name: Docker Build Test
-    runs-on: ubuntu-latest
-    needs: [lint-dockerfile, lint-shell, lint-json]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          tags: keycloak-heroku:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Verify startup script
-        run: bash -n start-keycloak.sh && echo "✓ start-keycloak.sh syntax OK"
-
+            - name: Check for hardcoded secrets
+              continue-on-error: true
+              run: |
+                  if grep -r "password\|secret\|api.key\|token" app.json .env.example 2>/dev/null | grep -v "change_me\|example\|EXAMPLE"; then
+                      echo "⚠️ Warning: Possible hardcoded credentials detected. Please review."
+                      exit 1
+                  else
+                      echo "✓ No obvious hardcoded credentials found"
+                  fi
 
     dockerfile-scan:
         name: Dockerfile Security Scan
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Run Trivy vulnerability scanner
               uses: aquasecurity/trivy-action@master
@@ -260,36 +144,12 @@ jobs:
                   sarif_file: 'trivy-results.sarif'
                   category: 'trivy'
 
-    json-validation:
-        name: Configuration File Validation
-        runs-on: ubuntu-latest
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Validate JSON files
-              run: |
-                  echo "Checking JSON files..."
-                  python3 -m json.tool app.json > /dev/null && echo "✓ app.json is valid"
-
-            - name: Check for hardcoded secrets in configs
-              run: |
-                  echo "Scanning for common secret patterns..."
-                  ! grep -r "password\|secret\|token\|api_key" app.json .env.example || echo "⚠️ Review hardcoded values"
-
-            - name: Validate shell scripts
-              run: |
-                  echo "Checking bash syntax..."
-                  bash -n start-keycloak.sh && echo "✓ start-keycloak.sh syntax OK"
-
     dependency-check:
         name: Dependency Security Check
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Check Docker image for vulnerabilities
               uses: aquasecurity/trivy-action@master

@@ -134,6 +134,7 @@ heroku dyno:type standard-2x -a your-keycloak-app-name
 | `KEYCLOAK_ADMIN` | Admin username | Yes | `admin` |
 | `KEYCLOAK_ADMIN_PASSWORD` | Admin password (strong password recommended) | Yes | - |
 | `KEYCLOAK_HOSTNAME` | Hostname for Keycloak (your-app.herokuapp.com or custom domain) | Yes | - |
+| `KEYCLOAK_VERSION` | Keycloak version to deploy (e.g., 26.4.2, 25.0.0, or 'latest') | No | `latest` |
 | `PORT` | HTTP port (set by Heroku) | No | `8080` |
 
 ### Database Configuration
@@ -145,6 +146,21 @@ postgres://username:password@host:port/database
 ```
 
 Additional parameters (like `?sslmode=require`) are supported and will be passed through to the JDBC connection.
+
+### Keycloak Version Management
+
+By default, this deployment uses the latest version of Keycloak. To use a specific version, set the `KEYCLOAK_VERSION` environment variable:
+
+```bash
+# Deploy specific version
+heroku config:set KEYCLOAK_VERSION=26.4.2 -a your-keycloak-app-name
+git push heroku main
+
+# Check current version
+heroku config:get KEYCLOAK_VERSION -a your-keycloak-app-name
+```
+
+See [KEYCLOAK_VERSIONS.md](KEYCLOAK_VERSIONS.md) for detailed version management instructions and available versions.
 
 ## Local Development
 

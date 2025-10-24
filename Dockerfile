@@ -1,4 +1,7 @@
-FROM quay.io/keycloak/keycloak:latest
+# Build argument for Keycloak version (default: latest)
+ARG KEYCLOAK_VERSION=latest
+
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 
 # Set working directory
 WORKDIR /opt/keycloak

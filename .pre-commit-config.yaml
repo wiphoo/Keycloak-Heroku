@@ -1,5 +1,5 @@
 default_language_version:
-  python: python3.11
+  python: python3.12
 
 repos:
   # General file checks
@@ -9,7 +9,7 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: check-ast
-        language_version: python3.11
+        language_version: python3.12
       - id: check-json
         exclude: ^\.?github/
       - id: check-yaml
@@ -19,7 +19,6 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
-      - id: check-docstring-is-first
       - id: debug-statements
 
   # YAML linting
@@ -49,28 +48,6 @@ repos:
       - id: hadolint-docker
         args: [--ignore, DL3008, --ignore, DL3009]
 
-  # Python code quality
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
-    hooks:
-      - id: black
-        language_version: python3.11
-        exclude: ^(\.venv|venv)/
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: [--profile, black]
-        exclude: ^(\.venv|venv)/
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        args: [--max-line-length=120, --extend-ignore=E203]
-        exclude: ^(\.venv|venv)/
-
   # Security checks
   - repo: https://github.com/trufflesecurity/trufflehog
     rev: v3.61.0
@@ -89,12 +66,6 @@ repos:
           - mdformat-gfm
           - mdformat-tables
 
-  # Documentation
-  - repo: https://github.com/adrienverge/pep257
-    rev: 0.0.11
-    hooks:
-      - id: pydocstyle
-        exclude: ^(\.venv|venv)/
 
 # Configuration for specific hooks
 default_stages: [commit]

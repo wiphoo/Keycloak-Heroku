@@ -2,9 +2,13 @@ name: Pre-Commit Checks
 
 on:
   push:
-    branches: [main, copilot/deploy-keycloak-heroku]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: read
@@ -17,14 +21,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install pre-commit
         run: pip install pre-commit
@@ -45,4 +49,3 @@ jobs:
               repo: context.repo.repo,
               body: '⚠️ **Pre-Commit Failed**: Some automated checks failed.\n\nPlease run `pre-commit run --all-files` locally and fix the issues.'
             })
-

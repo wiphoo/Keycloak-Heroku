@@ -33,6 +33,11 @@
     "KEYCLOAK_HOSTNAME": {
       "description": "Hostname for Keycloak (e.g., your-app.herokuapp.com or custom domain)",
       "required": true
+    },
+    "KEYCLOAK_VERSION": {
+      "description": "Keycloak version to deploy (e.g., 26.4.2, 25.0.0, or 'latest')",
+      "value": "latest",
+      "required": false
     }
   },
   "formation": {
