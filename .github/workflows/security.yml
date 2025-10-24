@@ -1,0 +1,167 @@
+name: Security Scanning
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  schedule:
+    # Run security checks weekly on Sunday at 2 AM UTC
+    - cron: "0 2 * * 0"
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  secret-scanning:
+    name: Secret Scanning with TruffleHog
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule' || github.run_attempt == 1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog - Git History
+        id: trufflehog_git
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified --json
+        continue-on-error: true
+
+      - name: Run TruffleHog - Filesystem
+        id: trufflehog_fs
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          filesystem: true
+          extra_args: --only-verified --json
+        continue-on-error: true
+
+      - name: Comment on PR if secrets found
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ **Security Alert**: TruffleHog detected potential secrets in this PR.\n\nPlease review and remove any exposed credentials before merging.'
+            })
+
+  security-scanning:
+    name: Container Security Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run Trivy - Dockerfile Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-dockerfile.sarif"
+        continue-on-error: true
+
+      - name: Upload Trivy Dockerfile results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: "trivy-dockerfile.sarif"
+          category: "trivy-dockerfile"
+
+      - name: Run Trivy - Image Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "quay.io/keycloak/keycloak:latest"
+          format: "sarif"
+          output: "trivy-image.sarif"
+        continue-on-error: true
+
+      - name: Upload Trivy Image results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: "trivy-image.sarif"
+          category: "trivy-image"
+
+  config-validation:
+    name: Hardcoded Secrets Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check for hardcoded secrets
+        continue-on-error: true
+        run: |
+          if grep -r "password\|secret\|api.key\|token" app.json .env.example 2>/dev/null | grep -v "change_me\|example\|EXAMPLE"; then
+              echo "⚠️ Warning: Possible hardcoded credentials detected. Please review."
+              exit 1
+          else
+              echo "✓ No obvious hardcoded credentials found"
+          fi
+
+  dockerfile-scan:
+    name: Dockerfile Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+        continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+          category: "trivy"
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check Docker image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "quay.io/keycloak/keycloak:latest"
+          format: "sarif"
+          output: "docker-trivy-results.sarif"
+        continue-on-error: true
+
+      - name: Upload Docker image scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: "docker-trivy-results.sarif"
+          category: "docker-image"

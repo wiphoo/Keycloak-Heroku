@@ -1,0 +1,50 @@
+{
+  "name": "Keycloak on Heroku",
+  "description": "Deploy Keycloak identity and access management on Heroku with external PostgreSQL database",
+  "repository": "https://github.com/wiphoo/Keycloak-Heroku",
+  "keywords": [
+    "keycloak",
+    "identity",
+    "authentication",
+    "authorization",
+    "sso",
+    "oauth2",
+    "openid-connect",
+    "heroku",
+    "postgresql",
+    "neon"
+  ],
+  "stack": "container",
+  "env": {
+    "DATABASE_URL": {
+      "description": "PostgreSQL database URL (e.g., from Neon, ElephantSQL, or other provider)",
+      "required": true
+    },
+    "KEYCLOAK_ADMIN": {
+      "description": "Admin username for Keycloak",
+      "value": "admin",
+      "required": true
+    },
+    "KEYCLOAK_ADMIN_PASSWORD": {
+      "description": "Admin password for Keycloak (use a strong password!)",
+      "generator": "secret",
+      "required": true
+    },
+    "KEYCLOAK_HOSTNAME": {
+      "description": "Hostname for Keycloak (e.g., your-app.herokuapp.com or custom domain)",
+      "required": true
+    },
+    "KEYCLOAK_VERSION": {
+      "description": "Keycloak version to deploy (e.g., 26.4.2, 25.0.0, or 'latest')",
+      "value": "latest",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": []
+}
