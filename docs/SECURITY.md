@@ -7,14 +7,16 @@ This project implements automated security scanning and checks to ensure code qu
 ## Automated Security Scans
 
 ### TruffleHog Secret Scanning
+
 - **Purpose**: Detects exposed secrets, API keys, passwords, and other sensitive data in the repository
-- **Trigger**: 
+- **Trigger**:
   - On every push to `main` and `copilot/deploy-keycloak-heroku` branches
   - On every pull request to `main`
   - Daily scheduled scan at 2 AM UTC
 - **Workflow**: `.github/workflows/trufflehog-scan.yml`
 
 ### Comprehensive Security Checks
+
 The `security.yml` workflow includes:
 
 1. **Secret Scanning** - TruffleHog detection with PR notifications
@@ -36,18 +38,21 @@ If you discover a security vulnerability:
 When deploying this application:
 
 ### Environment Variables
+
 - Never commit `.env` files or secrets to the repository
 - Use Heroku's secure config variable management
 - Rotate credentials regularly
 - Never share admin passwords via insecure channels
 
 ### Database Security
+
 - Always use SSL/TLS for database connections
 - Use strong, randomly generated passwords
 - Enable database backups
 - Monitor database access logs
 
 ### Heroku Configuration
+
 - Keep the Keycloak Docker image updated
 - Use Standard-2X or larger dynos in production
 - Enable Heroku's DDoS protection
@@ -55,6 +60,7 @@ When deploying this application:
 - Enable two-factor authentication on Heroku account
 
 ### Application Security
+
 - Change default admin credentials immediately
 - Disable unnecessary Keycloak services
 - Enable HTTPS (handled by Heroku proxy)

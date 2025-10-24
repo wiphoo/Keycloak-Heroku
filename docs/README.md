@@ -5,7 +5,9 @@ Welcome to the Keycloak-Heroku documentation. This directory contains comprehens
 ## 📚 Documentation Files
 
 ### [DEPLOYMENT.md](./DEPLOYMENT.md)
+
 Complete guide for deploying Keycloak to Heroku, including:
+
 - Prerequisites and setup steps
 - Environment variables configuration
 - Database setup with Neon PostgreSQL
@@ -13,7 +15,9 @@ Complete guide for deploying Keycloak to Heroku, including:
 - Troubleshooting common issues
 
 ### [DEVELOPMENT.md](./DEVELOPMENT.md)
+
 Developer setup and workflow guide, including:
+
 - Local development environment setup
 - Pre-commit hooks explanation and installation
 - Making changes and running tests
@@ -22,7 +26,9 @@ Developer setup and workflow guide, including:
 - Troubleshooting and useful commands
 
 ### [KEYCLOAK_VERSIONS.md](./KEYCLOAK_VERSIONS.md)
+
 Keycloak version management guide, including:
+
 - Specifying different Keycloak versions
 - Available versions and compatibility
 - Building with specific versions
@@ -31,7 +37,9 @@ Keycloak version management guide, including:
 - Troubleshooting version issues
 
 ### [SECURITY.md](./SECURITY.md)
+
 Security policy and best practices, including:
+
 - Automated security scanning tools
 - Security testing procedures
 - Incident reporting guidelines
@@ -59,6 +67,7 @@ docs/
 ## 🔗 Main Documentation
 
 For project overview, feature list, and architecture, see:
+
 - [README.md](../README.md) - Main project documentation
 - [app.json](../app.json) - Heroku deployment configuration
 - [Dockerfile](../Dockerfile) - Container image definition
@@ -72,6 +81,7 @@ For project overview, feature list, and architecture, see:
 ## 🤝 Contributing
 
 When making changes to documentation:
+
 1. Update relevant files in this `docs/` directory
 2. Ensure changes follow Markdown formatting standards
 3. Update this index if adding new documentation
@@ -80,6 +90,7 @@ When making changes to documentation:
 ## 📞 Support
 
 For issues or questions:
+
 1. Check the relevant documentation file
 2. Review the troubleshooting sections
 3. Open an issue on GitHub for bugs or feature requests

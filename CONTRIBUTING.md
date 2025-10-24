@@ -19,6 +19,7 @@ If you encounter a bug or have a feature request:
 ### Submitting Changes
 
 1. **Fork the Repository**
+
    ```bash
    # Fork via GitHub UI, then clone your fork
    git clone https://github.com/YOUR-USERNAME/Keycloak-Heroku.git
@@ -26,6 +27,7 @@ If you encounter a bug or have a feature request:
    ```
 
 2. **Create a Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -36,21 +38,24 @@ If you encounter a bug or have a feature request:
    - Test your changes thoroughly
 
 4. **Test Locally**
+
    ```bash
    # Build the Docker image
    docker build -t keycloak-heroku-test .
-   
+
    # Run with your test database
    docker run --env-file .env -p 8080:8080 keycloak-heroku-test
    ```
 
 5. **Commit Your Changes**
+
    ```bash
    git add .
    git commit -m "Add a clear, descriptive commit message"
    ```
 
 6. **Push to Your Fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```

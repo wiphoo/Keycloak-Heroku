@@ -38,6 +38,7 @@ pre-commit run --all-files
 The following hooks are automatically run on each commit:
 
 #### File Integrity Checks
+
 - **Large Files**: Prevents accidental commits of files > 1MB
 - **JSON/YAML Validation**: Ensures JSON and YAML files are valid
 - **Merge Conflicts**: Detects unresolved merge conflicts
@@ -46,16 +47,19 @@ The following hooks are automatically run on each commit:
 - **End of File Fixer**: Ensures files end with newline
 
 #### Code Quality
+
 - **Python Syntax**: Validates Python syntax with AST
 - **YAML Linting**: Lints all YAML files with strict validation
 - **Shell Script Linting**: Uses ShellCheck for bash validation
 - **Dockerfile Linting**: Validates Dockerfile with hadolint
 
 #### Security
+
 - **Secret Detection**: TruffleHog scans for exposed credentials
 - **Private Keys**: Detects accidentally committed keys
 
 #### Formatting
+
 - **Python Black**: Auto-formats Python code
 - **Python isort**: Auto-formats Python imports
 - **Markdown**: Formats Markdown files
@@ -75,6 +79,7 @@ docker-compose up
 When making changes:
 
 1. Create a feature branch:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -82,6 +87,7 @@ When making changes:
 2. Make your changes
 
 3. Pre-commit hooks will run automatically:
+
    ```bash
    git add .
    git commit -m "feat: your feature description"
@@ -102,6 +108,7 @@ When making changes:
 Three GitHub Actions workflows ensure code quality:
 
 #### 1. **Security & Linting** (`.github/workflows/security.yml`)
+
 - Runs on push and pull requests
 - Daily scheduled scans at 2 AM UTC
 - Jobs:
@@ -115,11 +122,13 @@ Three GitHub Actions workflows ensure code quality:
   - Docker Build Test
 
 #### 2. **Pre-Commit Checks** (`.github/workflows/trufflehog-scan.yml`)
+
 - Runs pre-commit hooks in CI
 - Runs on all pushes and PRs
 - Comments on PRs if issues found
 
 #### 3. **CI/CD - Build & Test** (`.github/workflows/docker-build.yml`)
+
 - Docker build verification
 - Script syntax validation
 - Configuration file validation
@@ -127,7 +136,9 @@ Three GitHub Actions workflows ensure code quality:
 ### 7. Configuration Files
 
 #### `.pre-commit-config.yaml`
+
 Central configuration for all pre-commit hooks. Hooks are organized by:
+
 - General file checks
 - YAML linting
 - Shell script linting
@@ -139,6 +150,7 @@ Central configuration for all pre-commit hooks. Hooks are organized by:
 ### 8. Troubleshooting
 
 **Pre-commit installation fails:**
+
 ```bash
 python3 -m pip install --upgrade pip
 pip install pre-commit
@@ -149,12 +161,15 @@ pre-commit install
 This is normal - they install dependencies the first time. Subsequent runs are faster.
 
 **Want to skip pre-commit for a commit:**
+
 ```bash
 git commit --no-verify
 ```
+
 ⚠️ Note: CI will still run and may fail if code doesn't pass checks.
 
 **Update pre-commit hooks to latest versions:**
+
 ```bash
 pre-commit autoupdate
 git add .pre-commit-config.yaml
@@ -197,6 +212,7 @@ Fixes #123
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -207,6 +223,7 @@ Fixes #123
 - `chore`: Build/tooling changes
 
 **Examples:**
+
 ```
 feat(security): add TruffleHog scanning workflow
 fix(docker): resolve permission issues with startup script

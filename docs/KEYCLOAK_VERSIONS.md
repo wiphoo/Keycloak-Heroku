@@ -84,16 +84,19 @@ git push heroku main
 To upgrade Keycloak version:
 
 1. Update `KEYCLOAK_VERSION` environment variable:
+
    ```bash
    heroku config:set KEYCLOAK_VERSION=new.version.number
    ```
 
 2. Trigger a new deployment:
+
    ```bash
    git push heroku main
    ```
 
 3. Monitor logs for startup:
+
    ```bash
    heroku logs -a your-app-name --tail
    ```
@@ -174,6 +177,7 @@ To see all available Keycloak versions:
    - Browse through available versions
 
 2. **Via Docker CLI**:
+
    ```bash
    # Attempt to pull a version to check if it exists
    docker pull quay.io/keycloak/keycloak:26.4.2
@@ -181,6 +185,7 @@ To see all available Keycloak versions:
    ```
 
 3. **Via Skopeo** (if installed):
+
    ```bash
    skopeo list-tags docker://quay.io/keycloak/keycloak | jq '.Tags[]' | head -20
    ```

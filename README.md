@@ -82,11 +82,13 @@ git push heroku your-branch:main
 ### 6. Access Keycloak
 
 After deployment, access your Keycloak instance at:
+
 ```
 https://your-keycloak-app-name.herokuapp.com
 ```
 
 Login to the admin console at:
+
 ```
 https://your-keycloak-app-name.herokuapp.com/admin
 ```
@@ -128,14 +130,14 @@ heroku dyno:type standard-2x -a your-keycloak-app-name
 
 ### Environment Variables
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes | - |
-| `KEYCLOAK_ADMIN` | Admin username | Yes | `admin` |
-| `KEYCLOAK_ADMIN_PASSWORD` | Admin password (strong password recommended) | Yes | - |
-| `KEYCLOAK_HOSTNAME` | Hostname for Keycloak (your-app.herokuapp.com or custom domain) | Yes | - |
-| `KEYCLOAK_VERSION` | Keycloak version to deploy (e.g., 26.4.2, 25.0.0, or 'latest') | No | `latest` |
-| `PORT` | HTTP port (set by Heroku) | No | `8080` |
+| Variable                  | Description                                                     | Required | Default  |
+| ------------------------- | --------------------------------------------------------------- | -------- | -------- |
+| `DATABASE_URL`            | PostgreSQL connection string                                    | Yes      | -        |
+| `KEYCLOAK_ADMIN`          | Admin username                                                  | Yes      | `admin`  |
+| `KEYCLOAK_ADMIN_PASSWORD` | Admin password (strong password recommended)                    | Yes      | -        |
+| `KEYCLOAK_HOSTNAME`       | Hostname for Keycloak (your-app.herokuapp.com or custom domain) | Yes      | -        |
+| `KEYCLOAK_VERSION`        | Keycloak version to deploy (e.g., 26.4.2, 25.0.0, or 'latest')  | No       | `latest` |
+| `PORT`                    | HTTP port (set by Heroku)                                       | No       | `8080`   |
 
 ### Database Configuration
 
@@ -172,6 +174,7 @@ To verify that the KEYCLOAK_VERSION is properly configured and working:
 ```
 
 This script will:
+
 - Check if the Dockerfile has ARG KEYCLOAK_VERSION configured
 - Verify that FROM statement uses ${KEYCLOAK_VERSION}
 - Test Docker build with different versions
@@ -190,21 +193,25 @@ docker-compose up
 ```
 
 This will:
+
 - Start a PostgreSQL database container
 - Build and start the Keycloak container
 - Connect them together
 - Make Keycloak available at `http://localhost:8080`
 
 Default admin credentials:
+
 - Username: `admin`
 - Password: `admin`
 
 To stop:
+
 ```bash
 docker-compose down
 ```
 
 To clean up volumes:
+
 ```bash
 docker-compose down -v
 ```
@@ -312,6 +319,7 @@ See [LICENSE](LICENSE) file for details.
 ## Support
 
 For issues and questions:
+
 - Open an issue in this repository
 - Check Keycloak documentation: [keycloak.org/docs](https://www.keycloak.org/docs/latest/)
 - Heroku support: [help.heroku.com](https://help.heroku.com/)

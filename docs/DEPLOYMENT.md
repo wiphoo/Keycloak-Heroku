@@ -23,11 +23,13 @@ Before you begin, ensure you have:
 ### Install Heroku CLI
 
 **macOS (Homebrew):**
+
 ```bash
 brew tap heroku/brew && brew install heroku
 ```
 
 **Ubuntu/Debian:**
+
 ```bash
 curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 ```
@@ -55,6 +57,7 @@ heroku login
 5. Save this connection string - you'll need it later
 
 **Neon Benefits:**
+
 - Serverless (auto-scales)
 - Free tier available
 - SSL enabled by default
@@ -119,6 +122,7 @@ heroku config:set KEYCLOAK_ADMIN_PASSWORD="YourStrongPasswordHere123!" -a my-key
 ```
 
 **Optional: Set custom hostname** (if using a custom domain):
+
 ```bash
 heroku config:set KEYCLOAK_HOSTNAME="auth.yourdomain.com" -a my-keycloak-app
 ```
@@ -130,6 +134,7 @@ heroku config -a my-keycloak-app
 ```
 
 You should see:
+
 - DATABASE_URL
 - KEYCLOAK_ADMIN
 - KEYCLOAK_ADMIN_PASSWORD
@@ -140,11 +145,13 @@ You should see:
 ### Deploy to Heroku
 
 If you're on the main branch:
+
 ```bash
 git push heroku main
 ```
 
 If you're on a different branch:
+
 ```bash
 git push heroku your-branch:main
 ```
@@ -156,6 +163,7 @@ heroku logs --tail -a my-keycloak-app
 ```
 
 The build process will:
+
 1. Build the Docker image
 2. Push it to Heroku's container registry
 3. Start the application
@@ -169,11 +177,13 @@ This process typically takes 3-5 minutes.
 ### 1. Verify Deployment
 
 Check if the app is running:
+
 ```bash
 heroku ps -a my-keycloak-app
 ```
 
 You should see:
+
 ```
 === web (Basic): /opt/keycloak/start-keycloak.sh (1)
 web.1: up 2025/10/24 15:30:00 +0000 (~ 1m ago)
@@ -182,6 +192,7 @@ web.1: up 2025/10/24 15:30:00 +0000 (~ 1m ago)
 ### 2. Access Keycloak
 
 Open your Keycloak instance:
+
 ```bash
 heroku open -a my-keycloak-app
 ```
@@ -219,6 +230,7 @@ After logging in:
 ### Check Logs
 
 Always start by checking logs:
+
 ```bash
 heroku logs --tail -a my-keycloak-app
 ```
@@ -228,16 +240,20 @@ heroku logs --tail -a my-keycloak-app
 #### Issue: Application Crashed
 
 **Symptoms:**
+
 - App shows "Application Error"
 - `heroku ps` shows state as "crashed"
 
 **Solutions:**
+
 1. Check logs for specific errors:
+
    ```bash
    heroku logs --tail -a my-keycloak-app
    ```
 
 2. Verify DATABASE_URL is set correctly:
+
    ```bash
    heroku config:get DATABASE_URL -a my-keycloak-app
    ```
@@ -250,15 +266,18 @@ heroku logs --tail -a my-keycloak-app
 #### Issue: Cannot Connect to Database
 
 **Symptoms:**
+
 - Logs show "Could not connect to database"
 - Startup fails with database errors
 
 **Solutions:**
+
 1. Verify DATABASE_URL format:
    - Should be: `postgres://user:password@host:port/database`
    - Include `?sslmode=require` if your database requires SSL
 
 2. Test database connectivity:
+
    ```bash
    heroku run bash -a my-keycloak-app
    # In the container:
@@ -272,16 +291,20 @@ heroku logs --tail -a my-keycloak-app
 #### Issue: Admin Console Not Accessible
 
 **Symptoms:**
+
 - Cannot login to `/admin`
 - Login page doesn't load
 
 **Solutions:**
+
 1. Verify admin credentials are set:
+
    ```bash
    heroku config -a my-keycloak-app | grep KEYCLOAK_ADMIN
    ```
 
 2. Check if Keycloak started successfully:
+
    ```bash
    heroku logs --tail -a my-keycloak-app | grep "Started"
    ```
@@ -291,11 +314,14 @@ heroku logs --tail -a my-keycloak-app
 #### Issue: Slow Performance
 
 **Symptoms:**
+
 - Pages load slowly
 - Timeouts occur
 
 **Solutions:**
+
 1. Upgrade dyno type:
+
    ```bash
    heroku ps:resize web=standard-1x -a my-keycloak-app
    ```
@@ -322,11 +348,13 @@ heroku logs --tail -a my-keycloak-app
 ### Performance Optimization
 
 1. **Scale Dynos:**
+
    ```bash
    heroku ps:scale web=2 -a my-keycloak-app
    ```
 
 2. **Upgrade Dyno Type:**
+
    ```bash
    heroku ps:resize web=standard-2x -a my-keycloak-app
    ```
@@ -351,6 +379,7 @@ If you're still having issues:
 To update to the latest Keycloak version:
 
 1. Rebuild and redeploy:
+
    ```bash
    heroku builds:create -a my-keycloak-app
    ```
@@ -364,12 +393,14 @@ To update to the latest Keycloak version:
 ### Backup Database
 
 Regularly backup your database. For Neon:
+
 1. Go to your Neon project dashboard
 2. Use the branching feature to create backups
 
 ### Monitor Application
 
 Set up monitoring:
+
 ```bash
 heroku logs --tail -a my-keycloak-app
 ```
