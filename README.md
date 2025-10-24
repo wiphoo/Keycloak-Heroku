@@ -48,15 +48,18 @@ Set up the required environment variables:
 
 ```bash
 # Database URL (provided by your external PostgreSQL provider)
+# Supports both postgres:// and postgresql:// schemes
 heroku config:set DATABASE_URL="postgres://username:password@host:port/database" -a your-keycloak-app-name
 
 # Keycloak admin credentials (change these!)
 heroku config:set KEYCLOAK_ADMIN="admin" -a your-keycloak-app-name
 heroku config:set KEYCLOAK_ADMIN_PASSWORD="change_me_to_strong_password" -a your-keycloak-app-name
 
-# Optional: Custom hostname (if using custom domain)
-heroku config:set KEYCLOAK_HOSTNAME="your-custom-domain.com" -a your-keycloak-app-name
+# REQUIRED: Set your app's hostname (your-app-name.herokuapp.com or custom domain)
+heroku config:set KEYCLOAK_HOSTNAME="your-keycloak-app-name.herokuapp.com" -a your-keycloak-app-name
 ```
+
+**⚠️ Important:** The `KEYCLOAK_HOSTNAME` variable is required and must be set to your Heroku app's domain or custom domain before starting the application.
 
 ### 5. Deploy to Heroku
 
@@ -99,6 +102,22 @@ heroku config:set DATABASE_URL="postgres://user:password@ep-xxx.region.aws.neon.
 
 **Note:** Neon connection strings include SSL parameters by default, which is recommended for security.
 
+## Heroku Dyno Requirements
+
+Keycloak requires adequate memory to run properly. The recommended dyno types are:
+
+- **Minimum:** Standard-1X (512 MB RAM) - May be tight on resources during startup
+- **Recommended:** Standard-2X (1 GB RAM) - Smooth performance for production use
+- **Free Dyno:** Not recommended - Keycloak requires more than 512 MB and may fail to start
+
+To upgrade your dyno type:
+
+```bash
+heroku dyno:type standard-2x -a your-keycloak-app-name
+```
+
+**Note:** Free dynos will cause Keycloak to crash due to memory limits.
+
 ## Configuration
 
 ### Environment Variables
@@ -106,10 +125,10 @@ heroku config:set DATABASE_URL="postgres://user:password@ep-xxx.region.aws.neon.
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | Yes | - |
-| `KEYCLOAK_ADMIN` | Admin username | Yes | - |
-| `KEYCLOAK_ADMIN_PASSWORD` | Admin password | Yes | - |
-| `KEYCLOAK_HOSTNAME` | Custom hostname for Keycloak | No | Heroku app domain |
-| `PORT` | HTTP port (set by Heroku) | No | 8080 |
+| `KEYCLOAK_ADMIN` | Admin username | Yes | `admin` |
+| `KEYCLOAK_ADMIN_PASSWORD` | Admin password (strong password recommended) | Yes | - |
+| `KEYCLOAK_HOSTNAME` | Hostname for Keycloak (your-app.herokuapp.com or custom domain) | Yes | - |
+| `PORT` | HTTP port (set by Heroku) | No | `8080` |
 
 ### Database Configuration
 
