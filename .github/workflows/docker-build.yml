@@ -1,34 +1,42 @@
-name: Docker Build Test
+name: CI/CD - Build & Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [main, copilot/deploy-keycloak-heroku]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Docker Build & Verification
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      
-    - name: Test Docker build
-      run: |
-        docker build -t keycloak-heroku:test .
-        
-    - name: Verify start script syntax
-      run: |
-        bash -n start-keycloak.sh
-        
-    - name: Verify JSON files
-      run: |
-        python3 -m json.tool app.json > /dev/null
-        echo "app.json is valid"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: keycloak-heroku:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify shell script syntax
+        run: |
+          bash -n start-keycloak.sh
+          echo "✓ start-keycloak.sh syntax verified"
+
+      - name: Verify configuration files
+        run: |
+          python3 -m json.tool app.json > /dev/null
+          echo "✓ app.json is valid"
+

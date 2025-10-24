@@ -1,0 +1,112 @@
+default_language_version:
+  python: python3.11
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-ast
+        language_version: python3.11
+      - id: check-json
+        exclude: ^\.?github/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+      - id: check-docstring-is-first
+      - id: debug-statements
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: [--strict, -d, '{extends: relaxed, rules: {line-length: {max: 120}}}']
+        files: |
+          (?x)^(
+            \.github/workflows/.*\.ya?ml|
+            docker-compose\.ya?ml|
+            heroku\.ya?ml
+          )$
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+
+  # Python code quality
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+        exclude: ^(\.venv|venv)/
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile, black]
+        exclude: ^(\.venv|venv)/
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=120, --extend-ignore=E203]
+        exclude: ^(\.venv|venv)/
+
+  # Security checks
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.61.0
+    hooks:
+      - id: trufflehog
+        args: [--only-verified, filesystem, .]
+        exclude: ^(\.git|\.venv|venv)/
+
+  # Markdown linting
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+      - id: mdformat
+        args: [--wrap, '120']
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-tables
+
+  # Documentation
+  - repo: https://github.com/adrienverge/pep257
+    rev: 0.0.11
+    hooks:
+      - id: pydocstyle
+        exclude: ^(\.venv|venv)/
+
+# Configuration for specific hooks
+default_stages: [commit]
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [hadolint-docker]
+  submodules: false
