@@ -1,28 +1,28 @@
 #!/bin/bash
 
 # Extract database connection details from DATABASE_URL
-# Heroku provides DATABASE_URL in format: postgres://user:password@host:port/database
+# Heroku provides DATABASE_URL in format: postgresql://user:password@host:port/database[?query_params]
 if [ -z "$DATABASE_URL" ]; then
     echo "ERROR: DATABASE_URL environment variable is not set"
     exit 1
 fi
 
-# Parse DATABASE_URL
-DB_URL_REGEX="postgres://([^:]+):([^@]+)@([^:]+):([^/]+)/(.+)"
+# Parse DATABASE_URL (supports both postgres:// and postgresql:// schemes with optional query parameters)
+DB_URL_REGEX="postgre(sql)?://([^:]+):([^@]+)@([^:]+):([0-9]+)/([^?]+)"
 if [[ $DATABASE_URL =~ $DB_URL_REGEX ]]; then
-    DB_USER="${BASH_REMATCH[1]}"
-    DB_PASSWORD="${BASH_REMATCH[2]}"
-    DB_HOST="${BASH_REMATCH[3]}"
-    DB_PORT="${BASH_REMATCH[4]}"
-    DB_NAME="${BASH_REMATCH[5]}"
+    DB_USER="${BASH_REMATCH[2]}"
+    DB_PASSWORD="${BASH_REMATCH[3]}"
+    DB_HOST="${BASH_REMATCH[4]}"
+    DB_PORT="${BASH_REMATCH[5]}"
+    DB_NAME="${BASH_REMATCH[6]}"
 else
-    echo "ERROR: Could not parse DATABASE_URL"
+    echo "ERROR: Could not parse DATABASE_URL: $DATABASE_URL"
     exit 1
 fi
 
 # Set Keycloak environment variables
 export KC_DB=postgres
-export KC_DB_URL="jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+export KC_DB_URL="jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require"
 export KC_DB_USERNAME="${DB_USER}"
 export KC_DB_PASSWORD="${DB_PASSWORD}"
 
