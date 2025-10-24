@@ -76,10 +76,14 @@ export KC_HOSTNAME_STRICT_HTTPS=false
 
 # Set proxy headers (required for Heroku)
 export KC_PROXY=edge
+export KC_PROXY_HEADERS="xforwarded"
 
 # Set HTTP settings
 export KC_HTTP_ENABLED=true
 export KC_HTTP_PORT="${PORT:-8080}"
+
+# Optimize JVM for low-memory environments (Heroku free dyno has 512MB)
+export JAVA_OPTS="-Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
 # Set admin credentials (if provided)
 if [ -n "$KEYCLOAK_ADMIN" ] && [ -n "$KEYCLOAK_ADMIN_PASSWORD" ]; then
