@@ -15,6 +15,14 @@ This repository provides a Docker-based deployment configuration for running Key
 
 ## Quick Start
 
+### One-Click Deploy to Heroku
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/wiphoo/Keycloak-Heroku)
+
+**Note:** You'll need to provide your own external PostgreSQL database URL during setup.
+
+### Manual Deployment
+
 ### 1. Clone the Repository
 
 ```bash
@@ -115,7 +123,37 @@ Additional parameters (like `?sslmode=require`) are supported and will be passed
 
 ## Local Development
 
-To test locally with Docker:
+### Option 1: Using Docker Compose (Recommended)
+
+The easiest way to test locally is using Docker Compose, which sets up both Keycloak and a PostgreSQL database:
+
+```bash
+docker-compose up
+```
+
+This will:
+- Start a PostgreSQL database container
+- Build and start the Keycloak container
+- Connect them together
+- Make Keycloak available at `http://localhost:8080`
+
+Default admin credentials:
+- Username: `admin`
+- Password: `admin`
+
+To stop:
+```bash
+docker-compose down
+```
+
+To clean up volumes:
+```bash
+docker-compose down -v
+```
+
+### Option 2: Using Docker Directly
+
+If you have your own PostgreSQL database:
 
 1. Create a `.env` file with your configuration:
 

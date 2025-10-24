@@ -1,0 +1,31 @@
+name: Docker Build Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Test Docker build
+      run: |
+        docker build -t keycloak-heroku:test .
+        
+    - name: Verify start script syntax
+      run: |
+        bash -n start-keycloak.sh
+        
+    - name: Verify JSON files
+      run: |
+        python3 -m json.tool app.json > /dev/null
+        echo "app.json is valid"
