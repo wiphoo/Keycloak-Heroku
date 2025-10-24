@@ -31,8 +31,8 @@
       "required": true
     },
     "KEYCLOAK_HOSTNAME": {
-      "description": "Custom hostname for Keycloak (optional, defaults to Heroku app domain)",
-      "required": false
+      "description": "Hostname for Keycloak (e.g., your-app.herokuapp.com or custom domain)",
+      "required": true
     }
   },
   "formation": {

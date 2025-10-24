@@ -60,7 +60,17 @@ export KC_DB_USERNAME="${DB_USER}"
 export KC_DB_PASSWORD="${DB_PASSWORD}"
 
 # Set hostname (required for Heroku)
-export KC_HOSTNAME="${KEYCLOAK_HOSTNAME:-$(echo $HEROKU_APP_NAME.herokuapp.com)}"
+# If KEYCLOAK_HOSTNAME is not set, we cannot start Keycloak safely
+if [ -z "$KEYCLOAK_HOSTNAME" ]; then
+    echo "ERROR: KEYCLOAK_HOSTNAME is not set!"
+    echo "Please set the KEYCLOAK_HOSTNAME environment variable to your app domain."
+    echo "Example: heroku config:set KEYCLOAK_HOSTNAME=toffoli-keycloak.herokuapp.com"
+    exit 1
+fi
+
+export KC_HOSTNAME="$KEYCLOAK_HOSTNAME"
+echo "Hostname: $KC_HOSTNAME"
+
 export KC_HOSTNAME_STRICT=false
 export KC_HOSTNAME_STRICT_HTTPS=false
 
