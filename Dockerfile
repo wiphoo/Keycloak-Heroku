@@ -3,6 +3,9 @@ FROM quay.io/keycloak/keycloak:latest
 # Set working directory
 WORKDIR /opt/keycloak
 
+# Pre-build Keycloak with PostgreSQL support to optimize runtime startup
+RUN /opt/keycloak/bin/kc.sh build --db=postgres
+
 # Copy startup script
 COPY start-keycloak.sh ./start-keycloak.sh
 

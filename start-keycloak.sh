@@ -77,10 +77,6 @@ if [ -n "$KEYCLOAK_ADMIN" ] && [ -n "$KEYCLOAK_ADMIN_PASSWORD" ]; then
     export KC_BOOTSTRAP_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD}"
 fi
 
-# Build Keycloak (required for database configuration)
-echo "Building Keycloak with PostgreSQL support..."
-/opt/keycloak/bin/kc.sh build --db=postgres
-
-# Start Keycloak in production mode
+# Start Keycloak (build is done during Docker image build, not at runtime)
 echo "Starting Keycloak..."
 exec /opt/keycloak/bin/kc.sh start --optimized
