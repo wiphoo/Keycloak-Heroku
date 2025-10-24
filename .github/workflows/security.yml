@@ -1,0 +1,119 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [ main, copilot/deploy-keycloak-heroku ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security checks daily at 3 AM UTC
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  secret-scanning:
+    name: Secret Scanning with TruffleHog
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Run TruffleHog
+      id: trufflehog
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: ${{ github.event.repository.default_branch }}
+        head: HEAD
+        extra_args: --debug --json
+      continue-on-error: true
+      
+    - name: Comment on PR if secrets found
+      if: failure() && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ **Security Alert**: TruffleHog detected potential secrets in this PR. Please review and remove any exposed credentials before merging.'
+          })
+
+  dockerfile-scan:
+    name: Dockerfile Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'config'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+      continue-on-error: true
+      
+    - name: Upload Trivy results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        category: 'trivy'
+
+  json-validation:
+    name: Configuration File Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate JSON files
+      run: |
+        echo "Checking JSON files..."
+        python3 -m json.tool app.json > /dev/null && echo "✓ app.json is valid"
+        
+    - name: Check for hardcoded secrets in configs
+      run: |
+        echo "Scanning for common secret patterns..."
+        ! grep -r "password\|secret\|token\|api_key" app.json .env.example || echo "⚠️ Review hardcoded values"
+        
+    - name: Validate shell scripts
+      run: |
+        echo "Checking bash syntax..."
+        bash -n start-keycloak.sh && echo "✓ start-keycloak.sh syntax OK"
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check Docker image for vulnerabilities
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'quay.io/keycloak/keycloak:latest'
+        format: 'sarif'
+        output: 'docker-trivy-results.sarif'
+      continue-on-error: true
+      
+    - name: Upload Docker image scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'docker-trivy-results.sarif'
+        category: 'docker-image'

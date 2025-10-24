@@ -1,10 +1,16 @@
 # Keycloak-Heroku
 
+[![Docker Build Test](https://github.com/wiphoo/Keycloak-Heroku/actions/workflows/docker-build.yml/badge.svg)](https://github.com/wiphoo/Keycloak-Heroku/actions/workflows/docker-build.yml)
+[![Security Checks](https://github.com/wiphoo/Keycloak-Heroku/actions/workflows/security.yml/badge.svg)](https://github.com/wiphoo/Keycloak-Heroku/actions/workflows/security.yml)
+[![TruffleHog Scan](https://github.com/wiphoo/Keycloak-Heroku/actions/workflows/trufflehog-scan.yml/badge.svg)](https://github.com/wiphoo/Keycloak-Heroku/actions/workflows/trufflehog-scan.yml)
+
 Deploy Keycloak on Heroku with an external PostgreSQL database (e.g., Neon PostgreSQL).
 
 ## Overview
 
 This repository provides a Docker-based deployment configuration for running Keycloak on Heroku with an external PostgreSQL database. It's designed to work seamlessly with Heroku's container registry and supports external database providers like Neon PostgreSQL.
+
+**Security**: This project includes automated security scanning with TruffleHog and Trivy to detect secrets and vulnerabilities. See [SECURITY.md](SECURITY.md) for details.
 
 ## Prerequisites
 
