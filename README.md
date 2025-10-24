@@ -10,7 +10,7 @@ Deploy Keycloak on Heroku with an external PostgreSQL database (e.g., Neon Postg
 
 This repository provides a Docker-based deployment configuration for running Keycloak on Heroku with an external PostgreSQL database. It's designed to work seamlessly with Heroku's container registry and supports external database providers like Neon PostgreSQL.
 
-**Security**: This project includes automated security scanning with TruffleHog and Trivy to detect secrets and vulnerabilities. See [SECURITY.md](SECURITY.md) for details.
+**Security**: This project includes automated security scanning with TruffleHog and Trivy to detect secrets and vulnerabilities. See [docs/SECURITY.md](./docs/SECURITY.md) for details.
 
 ## Prerequisites
 
@@ -160,7 +160,24 @@ git push heroku main
 heroku config:get KEYCLOAK_VERSION -a your-keycloak-app-name
 ```
 
-See [KEYCLOAK_VERSIONS.md](KEYCLOAK_VERSIONS.md) for detailed version management instructions and available versions.
+See [docs/KEYCLOAK_VERSIONS.md](./docs/KEYCLOAK_VERSIONS.md) for detailed version management instructions and available versions.
+
+### Verifying Version Configuration
+
+To verify that the KEYCLOAK_VERSION is properly configured and working:
+
+```bash
+# Run the verification script
+./verify-keycloak-version.sh
+```
+
+This script will:
+- Check if the Dockerfile has ARG KEYCLOAK_VERSION configured
+- Verify that FROM statement uses ${KEYCLOAK_VERSION}
+- Test Docker build with different versions
+- Confirm GitHub Actions workflow passes build-args
+
+Expected output: ✅ ALL VERIFICATION TESTS PASSED
 
 ## Local Development
 

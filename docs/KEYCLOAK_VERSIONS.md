@@ -152,14 +152,52 @@ curl http://localhost:8080/admin/
 ### Build fails with specific version
 
 ```bash
-# Verify version exists
-curl -s https://quay.io/api/v1/repositories/keycloak/keycloak/tags | jq '.tags[] | .name' | grep 26.4.2
+# Verify version exists (Method 1 - Docker CLI)
+docker pull quay.io/keycloak/keycloak:26.4.2
+
+# Verify version exists (Method 2 - Browser)
+# Visit: https://quay.io/repository/keycloak/keycloak?tab=tags
+
+# Verify version exists (Method 3 - Skopeo)
+skopeo list-tags docker://quay.io/keycloak/keycloak | grep 26.4.2
 
 # Check Dockerfile syntax
 docker build --no-cache --build-arg KEYCLOAK_VERSION=26.4.2 -t test .
 ```
 
-### Version mismatch after deployment
+### Checking Available Versions
+
+To see all available Keycloak versions:
+
+1. **Via Web Browser** (Easiest):
+   - Navigate to: https://quay.io/repository/keycloak/keycloak?tab=tags
+   - Browse through available versions
+
+2. **Via Docker CLI**:
+   ```bash
+   # Attempt to pull a version to check if it exists
+   docker pull quay.io/keycloak/keycloak:26.4.2
+   # If successful, the version exists
+   ```
+
+3. **Via Skopeo** (if installed):
+   ```bash
+   skopeo list-tags docker://quay.io/keycloak/keycloak | jq '.Tags[]' | head -20
+   ```
+
+4. **Recent Stable Versions** (known):
+   ```
+   26.4.2 (current stable)
+   26.4.1
+   26.4.0
+   25.0.6
+   25.0.5
+   24.0.7
+   24.0.6
+   latest (always current)
+   ```
+
+## Version Mismatch After Deployment
 
 ```bash
 # Check current container version
