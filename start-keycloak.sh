@@ -1,24 +1,57 @@
 #!/bin/bash
 
 # Extract database connection details from DATABASE_URL
-# Heroku provides DATABASE_URL in format: postgresql://user:password@host:port/database[?query_params]
+# Heroku provides DATABASE_URL in format: postgresql://user:password@host[:port]/database[?query_params]
 if [ -z "$DATABASE_URL" ]; then
     echo "ERROR: DATABASE_URL environment variable is not set"
     exit 1
 fi
 
-# Parse DATABASE_URL (supports both postgres:// and postgresql:// schemes with optional query parameters)
-DB_URL_REGEX="postgre(sql)?://([^:]+):([^@]+)@([^:]+):([0-9]+)/([^?]+)"
-if [[ $DATABASE_URL =~ $DB_URL_REGEX ]]; then
-    DB_USER="${BASH_REMATCH[2]}"
-    DB_PASSWORD="${BASH_REMATCH[3]}"
-    DB_HOST="${BASH_REMATCH[4]}"
-    DB_PORT="${BASH_REMATCH[5]}"
-    DB_NAME="${BASH_REMATCH[6]}"
+# Remove query parameters if present
+DATABASE_URL_NO_QUERY="${DATABASE_URL%%\?*}"
+echo "Parsing DATABASE_URL..."
+
+# Parse DATABASE_URL using string manipulation instead of regex
+# Remove scheme (postgres:// or postgresql://)
+URL_WITHOUT_SCHEME="${DATABASE_URL_NO_QUERY#*://}"
+
+# Extract credentials (everything before @)
+CREDS="${URL_WITHOUT_SCHEME%%@*}"
+DB_USER="${CREDS%%:*}"
+DB_PASSWORD="${CREDS#*:}"
+
+# Extract host, port, and database
+HOST_PORT_DB="${URL_WITHOUT_SCHEME#*@}"
+HOST_PORT="${HOST_PORT_DB%%/*}"
+DB_NAME="${HOST_PORT_DB#*/}"
+
+# Try to extract port from host:port
+if [[ "$HOST_PORT" == *:* ]]; then
+    DB_HOST="${HOST_PORT%%:*}"
+    DB_PORT="${HOST_PORT##*:}"
 else
+    # No port specified, use default PostgreSQL port
+    DB_HOST="$HOST_PORT"
+    DB_PORT="5432"
+fi
+
+# Validate parsed values
+if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ] || [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ]; then
     echo "ERROR: Could not parse DATABASE_URL: $DATABASE_URL"
+    echo "Parsed values:"
+    echo "  User: $DB_USER"
+    echo "  Password: [hidden]"
+    echo "  Host: $DB_HOST"
+    echo "  Port: $DB_PORT"
+    echo "  Database: $DB_NAME"
     exit 1
 fi
+
+echo "Database connection parsed successfully:"
+echo "  Host: $DB_HOST"
+echo "  Port: $DB_PORT"
+echo "  Database: $DB_NAME"
+echo "  User: $DB_USER"
 
 # Set Keycloak environment variables
 export KC_DB=postgres
