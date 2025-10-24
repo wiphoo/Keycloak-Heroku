@@ -3,8 +3,11 @@ FROM quay.io/keycloak/keycloak:latest
 # Set working directory
 WORKDIR /opt/keycloak
 
-# Copy startup script with executable permissions
-COPY --chmod=755 start-keycloak.sh /opt/keycloak/start-keycloak.sh
+# Copy startup script
+COPY start-keycloak.sh /opt/keycloak/start-keycloak.sh
+
+# Make startup script executable (use sh -c to avoid permission issues)
+RUN sh -c 'chmod +x /opt/keycloak/start-keycloak.sh'
 
 # Expose port
 EXPOSE 8080
